@@ -33,21 +33,25 @@ typedef struct {
     Direction direction;
 } Snake;
 
-Direction scan_direction() {
+void updateDirection(Snake* snake) {
+    Direction currentDirection = snake->direction;
     if (getch() == '\033') {
         getch();
         switch(getch()) {
             case 'A':
-                return UP;
+                if (currentDirection == LEFT || currentDirection == RIGHT) snake->direction = UP;
+                break;
             case 'B':
-                return DOWN;
+                if (currentDirection == LEFT || currentDirection == RIGHT) snake->direction = DOWN;
+                break;
             case 'C':
-                return RIGHT;
+                if (currentDirection == UP || currentDirection == DOWN) snake->direction = RIGHT;
+                break;
             case 'D':
-                return LEFT;
+                if (currentDirection == UP || currentDirection == DOWN) snake->direction = LEFT;
+                break;
         }
     }
-    return 0;
 }
 
 
@@ -78,15 +82,14 @@ void display_apple(WINDOW* win, Point apple) {
     mvwprintw(win, apple.y, apple.x, APPLE_REPR);
 }
 
-void move_forward(Snake* snake, Direction direction, size_t max_x, size_t max_y) {
-    if (direction != 0) {
-        snake->direction = direction;
-    }
+void move_forward(Snake* snake, size_t max_x, size_t max_y) {
+    Point head = snake->body[snake->size-1];
+    Point new_head;
+    updateDirection(snake);
+    
     for (int i=0; i<snake->size-1; i++) {
         snake->body[i] = snake->body[i+1];
     }
-    Point head = snake->body[snake->size-2];
-    Point new_head;
     switch(snake->direction) {
         case UP:
             new_head = (Point) {head.x, (head.y+max_y-2) % max_y + 1};
@@ -176,7 +179,7 @@ int main(int argc, char *argv[]) {
             delay *= ACCELERATION_RATIO;
             score += 100;
         }
-        move_forward(snake, scan_direction(), size_x-2, size_y-2);
+        move_forward(snake, size_x-2, size_y-2);
         if (has_collision(snake)) {
             wclear(win);
             box(win, 0, 0);
