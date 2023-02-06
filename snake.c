@@ -55,7 +55,7 @@ void updateDirection(Snake* snake) {
 }
 
 
-Snake* new_snake() {
+Snake* newSnake() {
     Snake* snake = malloc(sizeof(Snake));
     snake->body = calloc(MAX_LENGTH, sizeof(Point));
     if (snake == NULL || snake->body == NULL) {
@@ -70,7 +70,7 @@ Snake* new_snake() {
     return snake;
 }
 
-void display_snake(WINDOW* win, Snake* snake) {
+void displaySnake(WINDOW* win, Snake* snake) {
     for (int i=0; i<snake->size-1; i++) {
         Point point = snake->body[i];
         mvwprintw(win, point.y, point.x, SNAKE_REPR);
@@ -78,11 +78,11 @@ void display_snake(WINDOW* win, Snake* snake) {
     mvwprintw(win, snake->body[snake->size-1].y, snake->body[snake->size-1].x, SNAKE_HEAD);
 } 
 
-void display_apple(WINDOW* win, Point apple) {
+void displayApple(WINDOW* win, Point apple) {
     mvwprintw(win, apple.y, apple.x, APPLE_REPR);
 }
 
-void move_forward(Snake* snake, size_t max_x, size_t max_y) {
+void moveForward(Snake* snake, size_t max_x, size_t max_y) {
     Point head = snake->body[snake->size-1];
     Point new_head;
     updateDirection(snake);
@@ -108,7 +108,7 @@ void move_forward(Snake* snake, size_t max_x, size_t max_y) {
 }
 
 
-bool snake_eat(Snake* snake, Point apple) {
+bool snakeEat(Snake* snake, Point apple) {
     if (snake->body[snake->size-1].x == apple.x && snake->body[snake->size-1].y == apple.y) {
         snake->body[snake->size] = apple;
         snake->size++;
@@ -117,7 +117,7 @@ bool snake_eat(Snake* snake, Point apple) {
     return false;
 }
 
-Point generate_apple(Snake* snake, short max_x, short max_y) {
+Point generateApple(Snake* snake, short max_x, short max_y) {
     short position[2], maxxy[2] = {max_x, max_y};
     bool is_valid = false;
     while (!is_valid) {
@@ -135,7 +135,7 @@ Point generate_apple(Snake* snake, short max_x, short max_y) {
     return (Point) {position[0], position[1]};
 }
 
-bool has_collision(Snake* snake) {
+bool hasCollision(Snake* snake) {
     Point head = snake->body[snake->size-1];
     for (int i=0; i<snake->size-1; i++) {
         Point body_part = snake->body[i];
@@ -147,7 +147,7 @@ bool has_collision(Snake* snake) {
 }
 
 
-WINDOW* init_ncurses_window(size_t* size_x, size_t* size_y) {
+WINDOW* initNcursesWindow(size_t* size_x, size_t* size_y) {
     int max_x, max_y;
     initscr();
     getmaxyx(stdscr, max_y, max_x);
@@ -162,25 +162,24 @@ WINDOW* init_ncurses_window(size_t* size_x, size_t* size_y) {
 
 
 int main(int argc, char *argv[]) {
-
     srand(time(NULL));    
     size_t size_x, size_y;
-    WINDOW* win = init_ncurses_window(&size_x, &size_y);    
-    Snake* snake = new_snake();
-    Point apple = generate_apple(snake, size_x-2, size_y-2);
+    WINDOW* win = initNcursesWindow(&size_x, &size_y);    
+    Snake* snake = newSnake();
+    Point apple = generateApple(snake, size_x-2, size_y-2);
     int delay = INITIAL_DELAY;
     unsigned int score = 100;
     while (true) {
         wclear(win);
         box(win, 0, 0);
-        display_apple(win, apple);
-        if (snake_eat(snake, apple)) {
-            apple = generate_apple(snake, size_x-2, size_y-2);
+        displayApple(win, apple);
+        if (snakeEat(snake, apple)) {
+            apple = generateApple(snake, size_x-2, size_y-2);
             delay *= ACCELERATION_RATIO;
             score += 100;
         }
-        move_forward(snake, size_x-2, size_y-2);
-        if (has_collision(snake)) {
+        moveForward(snake, size_x-2, size_y-2);
+        if (hasCollision(snake)) {
             wclear(win);
             box(win, 0, 0);
             mvwprintw(win, size_y/2-1, size_x/2 - 5, "GAME OVER");
@@ -190,13 +189,12 @@ int main(int argc, char *argv[]) {
             endwin();
             exit(0);
         }
-        display_snake(win, snake);
+        displaySnake(win, snake);
         wrefresh(win);
         mvprintw(1, 1, "     Score %d", score);
         refresh();
         usleep(delay);
     }
-      
     endwin();
     return 0;
 }
