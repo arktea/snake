@@ -20,20 +20,20 @@ typedef enum {
     DOWN = 2,
     LEFT = 3,
     RIGHT = 4
-} direction_t;
+} Direction;
 
 typedef struct {
     short x;
     short y;
-} point_t;
+} Point;
 
 typedef struct {
     size_t size;
-    point_t* body;
-    direction_t direction;
-} snake_t;
+    Point* body;
+    Direction direction;
+} Snake;
 
-direction_t scan_direction() {
+Direction scan_direction() {
     if (getch() == '\033') {
         getch();
         switch(getch()) {
@@ -51,61 +51,61 @@ direction_t scan_direction() {
 }
 
 
-snake_t* new_snake() {
-    snake_t* snake = malloc(sizeof(snake_t));
-    snake->body = calloc(MAX_LENGTH, sizeof(point_t));
+Snake* new_snake() {
+    Snake* snake = malloc(sizeof(Snake));
+    snake->body = calloc(MAX_LENGTH, sizeof(Point));
     if (snake == NULL || snake->body == NULL) {
         printf("Error while allocating snake structure");
         exit(EXIT_FAILURE);
     }
     snake->size = INIT_LENGTH;
     for (int x=0; x<INIT_LENGTH; x++) {
-        snake->body[x] = (point_t) {START_X+x, START_Y};
+        snake->body[x] = (Point) {START_X+x, START_Y};
     }
     snake->direction = RIGHT;
     return snake;
 }
 
-void display_snake(WINDOW* win, snake_t* snake) {
+void display_snake(WINDOW* win, Snake* snake) {
     for (int i=0; i<snake->size-1; i++) {
-        point_t point = snake->body[i];
+        Point point = snake->body[i];
         mvwprintw(win, point.y, point.x, SNAKE_REPR);
     }
     mvwprintw(win, snake->body[snake->size-1].y, snake->body[snake->size-1].x, SNAKE_HEAD);
 } 
 
-void display_apple(WINDOW* win, point_t apple) {
+void display_apple(WINDOW* win, Point apple) {
     mvwprintw(win, apple.y, apple.x, APPLE_REPR);
 }
 
-void move_forward(snake_t* snake, direction_t direction, size_t max_x, size_t max_y) {
+void move_forward(Snake* snake, Direction direction, size_t max_x, size_t max_y) {
     if (direction != 0) {
         snake->direction = direction;
     }
     for (int i=0; i<snake->size-1; i++) {
         snake->body[i] = snake->body[i+1];
     }
-    point_t head = snake->body[snake->size-2];
-    point_t new_head;
+    Point head = snake->body[snake->size-2];
+    Point new_head;
     switch(snake->direction) {
         case UP:
-            new_head = (point_t) {head.x, (head.y+max_y-2) % max_y + 1};
+            new_head = (Point) {head.x, (head.y+max_y-2) % max_y + 1};
             break;
         case DOWN:
-            new_head = (point_t) {head.x, (head.y) % max_y + 1};
+            new_head = (Point) {head.x, (head.y) % max_y + 1};
             break;
         case LEFT:
-            new_head = (point_t) {(head.x+max_x-2) % max_x + 1, head.y};
+            new_head = (Point) {(head.x+max_x-2) % max_x + 1, head.y};
             break;
         case RIGHT:
-            new_head = (point_t) {(head.x) % max_x + 1, head.y};
+            new_head = (Point) {(head.x) % max_x + 1, head.y};
             break;
     }
     snake->body[snake->size-1] = new_head;
 }
 
 
-bool snake_eat(snake_t* snake, point_t apple) {
+bool snake_eat(Snake* snake, Point apple) {
     if (snake->body[snake->size-1].x == apple.x && snake->body[snake->size-1].y == apple.y) {
         snake->body[snake->size] = apple;
         snake->size++;
@@ -114,7 +114,7 @@ bool snake_eat(snake_t* snake, point_t apple) {
     return false;
 }
 
-point_t generate_apple(snake_t* snake, short max_x, short max_y) {
+Point generate_apple(Snake* snake, short max_x, short max_y) {
     short position[2], maxxy[2] = {max_x, max_y};
     bool is_valid = false;
     while (!is_valid) {
@@ -129,13 +129,13 @@ point_t generate_apple(snake_t* snake, short max_x, short max_y) {
             }
         }
     }
-    return (point_t) {position[0], position[1]};
+    return (Point) {position[0], position[1]};
 }
 
-bool has_collision(snake_t* snake) {
-    point_t head = snake->body[snake->size-1];
+bool has_collision(Snake* snake) {
+    Point head = snake->body[snake->size-1];
     for (int i=0; i<snake->size-1; i++) {
-        point_t body_part = snake->body[i];
+        Point body_part = snake->body[i];
         if (body_part.x == head.x && body_part.y == head.y) {
             return true;
         }
@@ -163,8 +163,8 @@ int main(int argc, char *argv[]) {
     srand(time(NULL));    
     size_t size_x, size_y;
     WINDOW* win = init_ncurses_window(&size_x, &size_y);    
-    snake_t* snake = new_snake();
-    point_t apple = generate_apple(snake, size_x-2, size_y-2);
+    Snake* snake = new_snake();
+    Point apple = generate_apple(snake, size_x-2, size_y-2);
     int delay = INITIAL_DELAY;
     unsigned int score = 100;
     while (true) {
