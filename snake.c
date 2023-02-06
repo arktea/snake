@@ -14,7 +14,6 @@
 #define SNAKE_REPR "o"
 #define APPLE_REPR "a"
 #define SNAKE_HEAD "@"
-#define coord_t short
 
 typedef enum {
     UP = 1,
@@ -24,8 +23,8 @@ typedef enum {
 } direction_t;
 
 typedef struct {
-    coord_t x;
-    coord_t y;
+    short x;
+    short y;
 } point_t;
 
 typedef struct {
@@ -115,8 +114,8 @@ bool snake_eat(snake_t* snake, point_t apple) {
     return false;
 }
 
-point_t generate_apple(snake_t* snake, coord_t max_x, coord_t max_y) {
-    coord_t position[2], maxxy[2] = {max_x, max_y};
+point_t generate_apple(snake_t* snake, short max_x, short max_y) {
+    short position[2], maxxy[2] = {max_x, max_y};
     bool is_valid = false;
     while (!is_valid) {
         for (int i=0; i<2; i++) {
